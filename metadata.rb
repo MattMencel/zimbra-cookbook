@@ -1,4 +1,4 @@
-name             'zimbra-cookbook'
+name             'zimbra'
 maintainer       'Matt Mencel'
 maintainer_email 'mr-mencel@wiu.edu'
 license          ''

@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: zimbra-cookbook
+# Cookbook Name:: zimbra
 # Recipe:: default
 #
 # Copyright (C) 2014
