@@ -1,0 +1,7 @@
+name             'zimbra-cookbook'
+maintainer       'Matt Mencel'
+maintainer_email 'mr-mencel@wiu.edu'
+license          ''
+description      'Zimbra LWRPs'
+long_description 'Zimbra LWRPs'
+version          '0.1.0'
