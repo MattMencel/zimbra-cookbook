@@ -29,7 +29,7 @@ end
 def installed
   inst = []
   if exists_and_old
-    inst = ::File.readlines('/tmp/zimlets_installed').each { |l| l.chomp! }
+    inst = ::File.readlines(tmp_path).each { |l| l.chomp! }
   else
     read_zim_lines(inst)
     write_zimlet
@@ -37,9 +37,13 @@ def installed
 end
 
 def exists_and_old
-  ex = ::File.exist?('/tmp/zimlets_installed')
-  recent = ::File.mtime('/tmp/zimlets_installed') < ::Time.now - 60
+  ex = ::File.exist?(tmp_path)
+  recent = ::File.mtime(tmp_path) < ::Time.now - 60
   return true if ex && !recent
+end
+
+def tmp_path
+  "#{Chef::Config[:file_cache_path]}/zimlets/#{new_resource.name}"
 end
 
 def read_zim_lines(inst)
@@ -52,7 +56,7 @@ def read_zim_lines(inst)
 end
 
 def write_zimlet
-  ::File.open('/tmp/zimlets_installed', 'w') do |f|
+  ::File.open(tmp_path, 'w') do |f|
     f.write(installed.join("\n"))
   end
 end
