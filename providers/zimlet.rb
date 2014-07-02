@@ -43,7 +43,7 @@ def zimlet_info_exists?
 end
 
 def zimlet_info_old?
-  return true unless ::File.mtime(tmp_path) < ::Time.now - 2_592_000
+  return true if ::File.mtime(tmp_path) < ::Time.now - 2_592_000
 end
 
 def tmp_path
