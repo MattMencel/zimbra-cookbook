@@ -60,6 +60,6 @@ end
 
 def write_zimlet_info
   ::File.open(tmp_path, 'w') do |f|
-    f.write(shell_out_zmzimletctl! %W(info #{new_resource.name}))
+    f.write(shell_out_zmzimletctl!(%W(info #{new_resource.name})).stdout)
   end
 end
