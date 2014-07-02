@@ -1,13 +1,15 @@
 include Chef::Mixin::ShellOut
 
 def action_install
-  installed
+  info_path = "#{Chef::Config[:file_cache_path]}/zimlets"
+  ::Dir.mkdir(info_path) unless Dir.exist?(info_path)
+  write_zimlet_info if !zimlet_info_exists? || zimlet_info_old?
 
-  installed.include?(new_resource.name) && return
-
+  return unless read_zimlet_info == 'NO_SUCH_ZIMLET'
   shell_out_zmzimletctl! %W(deploy #{new_resource.path})
   shell_out_zmprov! %w(fc zimlet)
   new_resource.updated_by_last_action true
+  write_zimlet_info
 end
 
 protected
@@ -26,37 +28,38 @@ def shell_out_zmprov!(cmd, opts = {})
   shell_out!(cmd, opts)
 end
 
-def installed
-  inst = []
-  if exists_and_old
-    inst = ::File.readlines(tmp_path).each { |l| l.chomp! }
-  else
-    read_zim_lines(inst)
-    write_zimlet
-  end
+# def installed?
+#   if exists && old
+#     inst = ::File.readlines(tmp_path).each { |l| l.chomp! }
+#   else
+#     read_zim_lines(inst)
+#     write_zimlet
+#   end
+# end
+
+def zimlet_info_exists?
+  ex = ::File.exist?(tmp_path)
+  return true if ex
 end
 
-def exists_and_old
-  ex = ::File.exist?(tmp_path)
-  recent = ::File.mtime(tmp_path) < ::Time.now - 60
-  return true if ex && !recent
+def zimlet_info_old?
+  return true unless ::File.mtime(tmp_path) < ::Time.now - 2_592_000
 end
 
 def tmp_path
   "#{Chef::Config[:file_cache_path]}/zimlets/#{new_resource.name}"
 end
 
-def read_zim_lines(inst)
-  installed_res = shell_out_zmzimletctl!(%w(listZimlets)).stdout
-  installed_res.each_line do |line|
-    next if line.include?('this host')
-    break if line.include?('LDAP')
-    inst << line.chomp.gsub!(/\t/, '')
+def read_zimlet_info
+  ::File.open(tmp_path).each_line do |line|
+    return 'NO_SUCH_ZIMLET' if line.include?('NO_SUCH_ZIMLET')
+    return 'ENABLED' if line.include?('Enabled: true')
   end
+  'UNKNOWN STATUS'
 end
 
-def write_zimlet
+def write_zimlet_info
   ::File.open(tmp_path, 'w') do |f|
-    f.write(installed.join("\n"))
+    f.write(shell_out_zmzimletctl! %W(info #{new_resource.name}))
   end
 end
