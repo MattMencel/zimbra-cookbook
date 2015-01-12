@@ -54,7 +54,7 @@ def deploy_zimlet?
   in_deployed = false
   path = '/opt/zimbra/zimlets-deployed/' + new_resource.name
   in_deployed if ::Dir.exist?(path)
-  return true unless enabled? AND in_deployed
+  return true unless enabled? && in_deployed
   false
 end
 
