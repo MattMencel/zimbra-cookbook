@@ -5,7 +5,7 @@ def action_install
   ::Dir.mkdir(info_path) unless Dir.exist?(info_path)
   write_zimlet_info if !zimlet_info_exists? || zimlet_info_old?
 
-  return unless read_zimlet_info == 'NO_SUCH_ZIMLET'
+  return unless deploy_zimlet?
   shell_out_zmzimletctl! %W(deploy #{new_resource.path})
   shell_out_zmprov! %w(fc zimlet)
   new_resource.updated_by_last_action true
@@ -50,12 +50,19 @@ def tmp_path
   "#{Chef::Config[:file_cache_path]}/zimlets/#{new_resource.name}"
 end
 
-def read_zimlet_info
+def deploy_zimlet?
+  in_deployed = false
+  path = '/opt/zimbra/zimlets-deployed/' + new_resource.name
+  in_deployed if ::Dir.exist?(path)
+  return true unless enabled? AND in_deployed?
+  false
+end
+
+def enabled?
   ::File.open(tmp_path).each_line do |line|
-    return 'NO_SUCH_ZIMLET' if line.include?('NO_SUCH_ZIMLET')
-    return 'ENABLED' if line.include?('Enabled: true')
+    false if line.include?('NO_SUCH_ZIMLET')
+    true if line.include?('Enabled: true')
   end
-  'UNKNOWN STATUS'
 end
 
 def write_zimlet_info
